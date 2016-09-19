@@ -18,6 +18,6 @@ fn read_syx(file: String) {
     let mut buf = [0u8; 12];
     file.read(&mut buf);
     for b in buf.iter() {
-        print!("{:X} ", b);
+        print!("{:01$X} ", b, 2);
     }
 }
