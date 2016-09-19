@@ -1,3 +1,6 @@
+use std::env;
+
 fn main() {
-    println!("Hello, world!");
+    let file = env::args().nth(1);
+    println!("Juuh! {:?}", file);
 }
