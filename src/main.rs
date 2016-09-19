@@ -30,7 +30,7 @@ fn read_syx(file_name: String) {
     }
     println!("");
 
-    println!("Axe FX model: {} ({:02$X})", axe_model_name(buf[4]), buf[4], 2);
+    println!("Axe FX model: {}", axe_model_name(buf[4]));
 
     if buf[6] == 0x7f {
         println!("Patch is targeting current edit buffer")
@@ -48,8 +48,10 @@ fn validate_header(buf: &[u8]) -> bool {
 fn axe_model_name(code: u8) -> &'static str {
     match code {
         0x03 => "Axe-Fx II",
+        0x05 => "FX8",
         0x06 => "Axe-Fx II XL",
         0x07 => "Axe-Fx II XL+",
+        0x08 => "AX8",
         _    => "Unknown"
     }
 }
