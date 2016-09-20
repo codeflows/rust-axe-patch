@@ -1,5 +1,5 @@
 [package]
-name = "rust-axe-patch"
+name = "rusty-axe"
 version = "0.1.0"
 authors = ["Jari Aarniala <jari.aarniala@gmail.com>"]
 
