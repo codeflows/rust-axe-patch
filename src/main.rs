@@ -31,6 +31,7 @@ fn read_syx(file_name: String) {
 
     println!("Axe FX model: {}", axe_model_name(buf[4]));
 
+    // http://forum.fractalaudio.com/threads/help-loading-presets-using-sysex-librarian.58581/#post732659
     if buf[6] == 0x7f {
         println!("Patch is targeting current edit buffer")
     } else {
@@ -38,9 +39,25 @@ fn read_syx(file_name: String) {
     }
 }
 
+// References:
+// http://wiki.fractalaudio.com/axefx2/index.php?title=MIDI_SysEx
+// http://wiki.fractalaudio.com/axefx2/index.php?title=Preset_management
 fn validate_header(buf: &[u8]) -> bool {
-    buf[0] == 0xF0 && buf[1] == 0x00 && buf[2] == 0x01 && buf[3] == 0x74 &&
-    buf[5] == 0x77 &&
+    // sysex start
+    buf[0] == 0xF0 &&
+    // "Manufacturer sysex ID byte 0. As of firmware 8.02 this is always 00."
+    buf[1] == 0x00 &&
+    // "Manufacturer sysex ID byte 1. As of firmware 10.02, this is always 01 (in previous firmware versions this was 00).""
+    buf[2] == 0x01 &&
+    // "Manufacture sysex ID byte 2. As of firmware 10.02, this is 74 (in previous firmware versions this was 7D).""
+    buf[3] == 0x74 &&
+    (
+        // ?
+        buf[5] == 0x77 ||
+        // MIDI_PATCH_DUMP?
+        buf[5] == 0x04
+    ) &&
+    // TODO assuming header length is 12 bytes here, should search for end instead
     buf[11] == 0xf7
 }
 
