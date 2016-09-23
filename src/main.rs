@@ -3,13 +3,12 @@ use std::fs::File;
 use std::io::Read;
 
 fn main() {
-    let file_arg = env::args().nth(1);
-    match file_arg {
-        Some(file) => read_syx(file),
-        None => {
-            println!("Usage: cargo run file.syx");
-            std::process::exit(-1);
-        }
+    if env::args().len() <= 1 {
+        println!("Usage: cargo run file1.syx file2.syx ...");
+        std::process::exit(-1);
+    }
+    for file in env::args().skip(1) {
+        read_syx(file)
     }
 }
 
