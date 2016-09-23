@@ -19,15 +19,15 @@ fn read_syx(file_name: String) {
     let mut buf = [0u8; 12];
     file.read(&mut buf).unwrap();
 
-    if !validate_header(&buf) {
-        println!("This does not look like a Axe FX patch file.");
-        std::process::exit(-1);
-    }
-
     for b in buf.iter() {
         print!("{:01$X} ", b, 2);
     }
     println!("");
+
+    if !validate_header(&buf) {
+        println!("This does not look like a Axe FX patch file.");
+        std::process::exit(-1);
+    }
 
     println!("Axe FX model: {}", axe_model_name(buf[4]));
 
