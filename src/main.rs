@@ -46,6 +46,8 @@ fn validate_header(buf: &[u8]) -> bool {
 
 fn axe_model_name(code: u8) -> &'static str {
     match code {
+        0x00 => "Axe-Fx Standard",
+        0x01 => "Axe-Fx Ultra",
         0x03 => "Axe-Fx II",
         0x05 => "FX8",
         0x06 => "Axe-Fx II XL",
