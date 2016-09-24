@@ -24,12 +24,18 @@ fn read_syx(file_name: String) {
     }
     println!("");
 
+    let model = axe_model_name(buf[4]);
+    println!("Axe FX model: {}", model);
+
+    if model == "Axe-Fx Standard" || model == "Axe-Fx Ultra" {
+        println!("Skip validation for now.");
+        return;
+    }
+
     if !validate_header(&buf) {
         println!("This does not look like a Axe FX patch file.");
         std::process::exit(-1);
     }
-
-    println!("Axe FX model: {}", axe_model_name(buf[4]));
 
     // http://forum.fractalaudio.com/threads/help-loading-presets-using-sysex-librarian.58581/#post732659
     if buf[6] == 0x7f {
@@ -52,9 +58,11 @@ fn validate_header(buf: &[u8]) -> bool {
     // "Manufacture sysex ID byte 2. As of firmware 10.02, this is 74 (in previous firmware versions this was 7D).""
     buf[3] == 0x74 &&
     (
-        // ?
+        // this seems to be the default
         buf[5] == 0x77 ||
-        // MIDI_PATCH_DUMP?
+        // seen this in at least one (2231)
+        buf[5] == 0x7a ||
+        // MIDI_PATCH_DUMP? standard and ultra patches?
         buf[5] == 0x04
     ) &&
     // TODO assuming header length is 12 bytes here, should search for end instead
