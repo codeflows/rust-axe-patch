@@ -16,13 +16,8 @@ fn read_syx(file_name: String) {
     println!("Reading {} ...", file_name);
 
     let mut file = File::open(file_name).unwrap();
-    let mut buf = [0u8; 12];
-    file.read(&mut buf).unwrap();
-
-    for b in buf.iter() {
-        print!("{:01$X} ", b, 2);
-    }
-    println!("");
+    let mut buf: Vec<u8> = Vec::new();
+    file.read_to_end(&mut buf).unwrap();
 
     let model = axe_model_name(buf[4]);
     println!("Axe FX model: {}", model);
@@ -34,6 +29,10 @@ fn read_syx(file_name: String) {
 
     if !validate_header(&buf) {
         println!("This does not look like a Axe FX patch file.");
+        for b in buf.iter() {
+            print!("{:01$X} ", b, 2);
+        }
+        println!("");
         std::process::exit(-1);
     }
 
@@ -45,9 +44,6 @@ fn read_syx(file_name: String) {
     }
 }
 
-// References:
-// http://wiki.fractalaudio.com/axefx2/index.php?title=MIDI_SysEx
-// http://wiki.fractalaudio.com/axefx2/index.php?title=Preset_management
 fn validate_header(buf: &[u8]) -> bool {
     // sysex start
     buf[0] == 0xF0 &&
