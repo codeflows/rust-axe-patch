@@ -1,9 +1,15 @@
-Reads and prints out some information on Axe FX patch files.
+# rusty-axe
+
+A Rust program that reads and prints out some information on Axe FX patch files.
+
+## Usage
+
+```cargo run your_preset.syx```
+
+## Example
 
 ```bash
-$ cargo run p004683_KillinginthenameofAX-8.syx
-Reading p004683_KillinginthenameofAX-8.syx ...
-F0 00 01 74 08 77 7F 00 00 20 25 F7
-Axe FX model: AX8
-Patch is targeting current edit buffer
+$ cargo run p003193_UnchainTheNight-fw18p04-mkII.syx
+Reading p003193_UnchainTheNight-fw18p04-mkII.syx ...
+Got preset Some(Preset { model: "Axe-Fx II", target: CurrentEditBuffer })
 ```
