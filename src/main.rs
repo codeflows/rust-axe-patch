@@ -32,7 +32,8 @@ fn parse_sysex_data(data: &[u8]) {
     }
     let end = find_sysex_message_end(data).unwrap();
     let message = &data[0..end+1];
-    read_syx(message);
+    let preset = read_syx(message);
+    println!("Got preset {:?}", preset);
 }
 
 fn find_sysex_message_end(data: &[u8]) -> Option<usize> {
@@ -44,22 +45,39 @@ fn find_sysex_message_end(data: &[u8]) -> Option<usize> {
     return None;
 }
 
-fn read_syx(buf: &[u8]) {
+// http://forum.fractalaudio.com/threads/help-loading-presets-using-sysex-librarian.58581/#post732659
+#[derive(Debug)]
+enum Target {
+    CurrentEditBuffer,
+    BankAndPreset { bank: u8, preset: u8 }
+}
+
+#[derive(Debug)]
+struct Preset {
+    model: &'static str,
+    target: Target
+}
+
+fn read_syx(buf: &[u8]) -> Option<Preset> {
     let model = axe_model_name(buf[4]);
-    println!("Axe FX model: {}", model);
 
     if !validate_header(&buf) {
         println!("This does not look like a Axe FX patch file.");
         print_bytes(buf);
-        std::process::exit(-1);
+        return None;
     }
 
-    // http://forum.fractalaudio.com/threads/help-loading-presets-using-sysex-librarian.58581/#post732659
+    let target: Target;
     if buf[6] == 0x7f {
-        println!("Patch is targeting current edit buffer")
+        target = Target::CurrentEditBuffer;
     } else {
-        println!("Patch is targeting bank {} preset {}", buf[6], buf[7])
+        target = Target::BankAndPreset { bank: buf[6], preset: buf[7] }
     }
+
+    return Some(Preset {
+        model: model,
+        target: target
+    });
 }
 
 fn validate_header(buf: &[u8]) -> bool {
