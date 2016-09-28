@@ -48,11 +48,6 @@ fn read_syx(buf: &[u8]) {
     let model = axe_model_name(buf[4]);
     println!("Axe FX model: {}", model);
 
-    if model == "Axe-Fx Standard" || model == "Axe-Fx Ultra" {
-        println!("Skip validation for now.");
-        return;
-    }
-
     if !validate_header(&buf) {
         println!("This does not look like a Axe FX patch file.");
         print_bytes(buf);
