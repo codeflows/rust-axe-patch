@@ -21,8 +21,8 @@ pub fn parse_preset(data: &[u8]) -> Option<Preset> {
 }
 
 fn find_sysex_message_start(data: &[u8]) -> Option<usize> {
-    data.get(0).and_then(|byte| {
-        if *byte == SYSEX_MESSAGE_START_BYTE {
+    data.get(0).and_then(|&byte| {
+        if byte == SYSEX_MESSAGE_START_BYTE {
             return Some(0);
         } else {
             return None;
@@ -31,8 +31,8 @@ fn find_sysex_message_start(data: &[u8]) -> Option<usize> {
 }
 
 fn find_sysex_message_end(data: &[u8]) -> Option<usize> {
-    for (index, byte) in data.iter().enumerate() {
-        if *byte == SYSEX_MESSAGE_END_BYTE {
+    for (index, &byte) in data.iter().enumerate() {
+        if byte == SYSEX_MESSAGE_END_BYTE {
             return Some(index);
         }
     }
@@ -45,6 +45,15 @@ fn read_syx(buf: &[u8]) -> Option<Preset> {
     if !validate_header(&buf) {
         println!("This does not look like a Axe FX patch file.");
         print_bytes(buf);
+        return None;
+    }
+
+    let checksum_index = buf.len() - 2;
+    let file_checksum = buf[checksum_index];
+    let xor = buf[..checksum_index].iter().fold(0, |acc, &x| acc ^ x);
+    let calculated_checksum = xor & 0x7F;
+    if file_checksum != calculated_checksum {
+        println!("Invalid checksum (model {})! Expected {:03$X} but got {:03$X}", model, calculated_checksum, file_checksum, 2);
         return None;
     }
 
@@ -71,7 +80,7 @@ fn validate_header(buf: &[u8]) -> bool {
     (
         // this seems to be the default
         buf[5] == 0x77 ||
-        // seen this in at least one (2231)
+        // MIDI_START_IR_DOWNLOAD
         buf[5] == 0x7a ||
         // MIDI_PATCH_DUMP? standard and ultra patches?
         buf[5] == 0x04
