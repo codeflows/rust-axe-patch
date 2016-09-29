@@ -10,16 +10,15 @@ fn main() {
         std::process::exit(-1);
     }
     for file in env::args().skip(1) {
-        read_sysex_file(file)
+        let data = read_file(&file);
+        let preset = rusty_axe::parse_preset(&data);
+        println!("{}: {:?}", file, preset);
     }
 }
 
-fn read_sysex_file(file_name: String) {
-    println!("Reading {} ...", file_name);
-
+fn read_file(file_name: &str) -> Vec<u8> {
     let mut file = File::open(file_name).unwrap();
     let mut buf: Vec<u8> = Vec::new();
     file.read_to_end(&mut buf).unwrap();
-
-    rusty_axe::parse_sysex_data(&buf);
+    return buf;
 }

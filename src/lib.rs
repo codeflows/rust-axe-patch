@@ -1,15 +1,33 @@
+#[derive(Debug)]
+pub struct Preset {
+    model: &'static str,
+    target: Target
+}
+
+#[derive(Debug)]
+enum Target {
+    CurrentEditBuffer,
+    BankAndPreset { bank: u8, preset: u8 }
+}
+
 const SYSEX_MESSAGE_START_BYTE: u8 = 0xf0;
 const SYSEX_MESSAGE_END_BYTE: u8 = 0xf7;
 
-pub fn parse_sysex_data(data: &[u8]) {
-    let start = data[0];
-    if start != SYSEX_MESSAGE_START_BYTE {
-        panic!("No start byte found");
-    }
+pub fn parse_preset(data: &[u8]) -> Option<Preset> {
+    let start = find_sysex_message_start(data).unwrap();
     let end = find_sysex_message_end(data).unwrap();
-    let message = &data[0..end+1];
-    let preset = read_syx(message);
-    println!("Got preset {:?}", preset);
+    let message = &data[start..end+1];
+    return read_syx(message);
+}
+
+fn find_sysex_message_start(data: &[u8]) -> Option<usize> {
+    data.get(0).and_then(|byte| {
+        if *byte == SYSEX_MESSAGE_START_BYTE {
+            return Some(0);
+        } else {
+            return None;
+        }
+    })
 }
 
 fn find_sysex_message_end(data: &[u8]) -> Option<usize> {
@@ -19,19 +37,6 @@ fn find_sysex_message_end(data: &[u8]) -> Option<usize> {
         }
     }
     return None;
-}
-
-// http://forum.fractalaudio.com/threads/help-loading-presets-using-sysex-librarian.58581/#post732659
-#[derive(Debug)]
-enum Target {
-    CurrentEditBuffer,
-    BankAndPreset { bank: u8, preset: u8 }
-}
-
-#[derive(Debug)]
-struct Preset {
-    model: &'static str,
-    target: Target
 }
 
 fn read_syx(buf: &[u8]) -> Option<Preset> {
