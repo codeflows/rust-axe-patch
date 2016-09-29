@@ -10,14 +10,28 @@ enum Target {
     BankAndPreset { bank: u8, preset: u8 }
 }
 
+pub fn parse_preset(data: &[u8]) -> Option<Preset> {
+    let messages = parse_sysex_messages(data);
+    return read_syx(messages[0]);
+}
+
 const SYSEX_MESSAGE_START_BYTE: u8 = 0xf0;
 const SYSEX_MESSAGE_END_BYTE: u8 = 0xf7;
 
-pub fn parse_preset(data: &[u8]) -> Option<Preset> {
-    let start = find_sysex_message_start(data).unwrap();
-    let end = find_sysex_message_end(data).unwrap();
-    let message = &data[start..end+1];
-    return read_syx(message);
+fn parse_sysex_messages(data: &[u8]) -> Vec<&[u8]> {
+    let mut messages: Vec<&[u8]> = Vec::new();
+    let mut remainder = data;
+
+    while remainder.len() > 0 {
+        let start = find_sysex_message_start(remainder).unwrap();
+        let end = find_sysex_message_end(remainder).unwrap();
+        let boundary = end + 1;
+        let message = &remainder[start..boundary];
+        messages.push(message);
+        remainder = &remainder[boundary..];
+    }
+
+    return messages;
 }
 
 fn find_sysex_message_start(data: &[u8]) -> Option<usize> {
