@@ -1,11 +1,13 @@
 mod sysex;
 mod util;
 
+use std::str;
 use util::format_hex;
 
 #[derive(Debug)]
 pub struct Preset {
-    model: &'static str,
+    model: String,
+    name: Option<String>,
     target: Target
 }
 
@@ -24,11 +26,13 @@ pub fn parse_preset(data: &[u8]) -> Result<Preset, ParseError> {
             return Err(format!("Error parsing sysex message #{}: {}", index, error));
         }
     }
-    let model_name = get_model_name(messages[0]);
+    let model = get_model_name(messages[0]).to_string();
+    let name = messages.get(1).map(|message| get_name(message));
     let target = get_target(messages[0]);
     return Ok(
         Preset {
-            model: model_name,
+            model: model,
+            name: name,
             target: target
         }
     )
@@ -85,6 +89,22 @@ fn get_model_name(message: &[u8]) -> &'static str {
         0x08 => "AX8",
         _    => "Unknown"
     }
+}
+
+const NAME_OFFSET: usize = 14;
+
+fn get_name(message: &[u8]) -> String {
+    let mut result: Vec<u8> = Vec::new();
+    for (index, &byte) in message[NAME_OFFSET..].iter().enumerate() {
+        if index % 3 == 0 {
+            if byte == 0x00 {
+                break;
+            } else {
+                result.push(byte);
+            }
+        }
+    }
+    return str::from_utf8(&result).unwrap().trim().to_string();
 }
 
 fn get_target(message: &[u8]) -> Target {
