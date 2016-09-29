@@ -48,10 +48,7 @@ fn read_syx(buf: &[u8]) -> Option<Preset> {
         return None;
     }
 
-    let checksum_index = buf.len() - 2;
-    let file_checksum = buf[checksum_index];
-    let xor = buf[..checksum_index].iter().fold(0, |acc, &x| acc ^ x);
-    let calculated_checksum = xor & 0x7F;
+    let (file_checksum, calculated_checksum) = get_checksums(&buf);
     if file_checksum != calculated_checksum {
         println!("Invalid checksum (model {})! Expected {:03$X} but got {:03$X}", model, calculated_checksum, file_checksum, 2);
         return None;
@@ -85,6 +82,16 @@ fn validate_header(buf: &[u8]) -> bool {
         // MIDI_PATCH_DUMP? standard and ultra patches?
         buf[5] == 0x04
     )
+}
+
+fn get_checksums(buf: &[u8]) -> (u8, u8) {
+    let checksum_index = buf.len() - 2;
+    let file_checksum = buf[checksum_index];
+    let xor = buf[..checksum_index]
+        .iter()
+        .fold(0, |acc, &x| acc ^ x);
+    let calculated_checksum = xor & 0x7F;
+    return (file_checksum, calculated_checksum);
 }
 
 fn axe_model_name(code: u8) -> &'static str {
