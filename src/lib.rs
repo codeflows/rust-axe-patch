@@ -1,4 +1,7 @@
 mod sysex;
+mod util;
+
+use util::format_hex;
 
 #[derive(Debug)]
 pub struct Preset {
@@ -12,21 +15,20 @@ enum Target {
     BankAndPreset { bank: u8, preset: u8 }
 }
 
-pub fn parse_preset(data: &[u8]) -> Option<Preset> {
+type ParseError = String;
+
+pub fn parse_preset(data: &[u8]) -> Result<Preset, ParseError> {
     let messages = sysex::parse_sysex_messages(data);
     for (index, message) in messages.iter().enumerate() {
         match validate_message(message) {
             Some(error) => {
-                println!("Error parsing sysex message #{}: {}", index, error);
-                return None;
+                return Err(format!("Error parsing sysex message #{}: {}", index, error));
             }
             None => () 
         }
     }
-    return None;//get_target(messages[0]);
+    return Err("Nope".to_string());//get_target(messages[0]);
 }
-
-type ParseError = String;
 
 fn validate_message(message: &[u8]) -> Option<ParseError> {
     let result = validate_header(message);
@@ -89,9 +91,4 @@ fn get_target(message: &[u8]) -> Target {
     } else {
         return Target::BankAndPreset { bank: message[6], preset: message[7] }
     }
-}
-
-fn format_hex(buf: &[u8]) -> String {
-    let hex: Vec<String> = buf.iter().map(|b| format!("{:01$X}", b, 2)).collect();
-    return hex.join(" ");
 }

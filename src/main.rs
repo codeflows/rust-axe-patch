@@ -11,8 +11,11 @@ fn main() {
     }
     for file in env::args().skip(1) {
         let data = read_file(&file);
-        let preset = rusty_axe::parse_preset(&data);
-        println!("{}: {:?}", file, preset);
+        let result = rusty_axe::parse_preset(&data);
+        match result {
+            Ok(preset) => println!("{}: {:?}", file, preset),
+            Err(error) => println!("{}: {}", file, error)
+        }
     }
 }
 
