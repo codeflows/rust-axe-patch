@@ -20,14 +20,18 @@ type ParseError = String;
 pub fn parse_preset(data: &[u8]) -> Result<Preset, ParseError> {
     let messages = sysex::parse_sysex_messages(data);
     for (index, message) in messages.iter().enumerate() {
-        match validate_message(message) {
-            Some(error) => {
-                return Err(format!("Error parsing sysex message #{}: {}", index, error));
-            }
-            None => () 
+        if let Some(error) = validate_message(message) {
+            return Err(format!("Error parsing sysex message #{}: {}", index, error));
         }
     }
-    return Err("Nope".to_string());//get_target(messages[0]);
+    let model_name = get_model_name(messages[0]);
+    let target = get_target(messages[0]);
+    return Ok(
+        Preset {
+            model: model_name,
+            target: target
+        }
+    )
 }
 
 fn validate_message(message: &[u8]) -> Option<ParseError> {
@@ -70,19 +74,17 @@ fn get_checksums(message: &[u8]) -> (u8, u8) {
     return (file_checksum, expected_checksum);
 }
 
-fn get_model_name(message: &[u8]) -> Option<&'static str> {
-    message.get(4).map(|&code| {
-        match code {
-            0x00 => "Axe-Fx Standard",
-            0x01 => "Axe-Fx Ultra",
-            0x03 => "Axe-Fx II",
-            0x05 => "FX8",
-            0x06 => "Axe-Fx II XL",
-            0x07 => "Axe-Fx II XL+",
-            0x08 => "AX8",
-            _    => "Unknown"
-        }
-    })
+fn get_model_name(message: &[u8]) -> &'static str {
+    match message[4] {
+        0x00 => "Axe-Fx Standard",
+        0x01 => "Axe-Fx Ultra",
+        0x03 => "Axe-Fx II",
+        0x05 => "FX8",
+        0x06 => "Axe-Fx II XL",
+        0x07 => "Axe-Fx II XL+",
+        0x08 => "AX8",
+        _    => "Unknown"
+    }
 }
 
 fn get_target(message: &[u8]) -> Target {
